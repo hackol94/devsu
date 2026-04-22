@@ -13,6 +13,6 @@ Característica: Creación de Clientes en Siigo
     Dado que el usuario navega al formulario de creación de clientes
     Cuando registra un nuevo cliente con los siguientes datos:
       | identificacion | nombre | apellido | ciudad | direccion | email |
-      | 1020304060    | Juan   | Perez    | Bogota | Calle 123 | juan@yopmail.com |
+      | 1020304061    | Juan   | Perez    | Bogota | Calle 123 | juan@yopmail.com |
     Entonces el sistema debe mostrar el mensaje de éxito "Tercero guardado exitosamente"
     Y el usuario debe ser redirigido a la vista de perfil del tercero
