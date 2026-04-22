@@ -1,0 +1,15 @@
+{
+  "testExecutionKey": "",
+  "info": {
+    "summary": "Test Execution - Automated Tests",
+    "description": "Automated test execution from Playwright + Cucumber framework",
+    "version": "1.0.0",
+    "user": "",
+    "revision": "main",
+    "startDate": "",
+    "finishDate": "",
+    "testPlanKey": "",
+    "testEnvironments": ["DEV"]
+  },
+  "tests": []
+}
