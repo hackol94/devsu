@@ -1,0 +1,120 @@
+/**
+ * Google Search Step Definitions
+ * 
+ * This file contains step definitions for Google Search feature scenarios.
+ * Steps are implemented using Cucumber expressions and connect Gherkin
+ * scenarios to the underlying automation code.
+ */
+
+import { Given, When, Then, setDefaultTimeout } from '@cucumber/cucumber';
+import { expect } from '@playwright/test';
+import { fixture } from '../../../hooks/hooks';
+import { GoogleSearchTask } from '../../../tasks/ui/GoogleSearchTask';
+import { GoogleSearchPage } from '../../../pages/GoogleSearchPage';
+
+// Set default timeout for steps (30 seconds)
+setDefaultTimeout(30000);
+
+/**
+ * Given Steps - Preconditions
+ */
+
+Given('que el usuario navega a Google', async function() {
+  fixture.logger.info('Step: Given que el usuario navega a Google');
+  
+  await GoogleSearchTask.navigateToGoogle(fixture);
+  
+  fixture.logger.info('Google homepage loaded successfully');
+});
+
+/**
+ * When Steps - Actions
+ */
+
+When('el usuario busca {string}', async function(searchTerm: string) {
+  fixture.logger.info(`Step: When el usuario busca "${searchTerm}"`);
+  
+  await GoogleSearchTask.performSearch(fixture, searchTerm);
+  
+  fixture.logger.info(`Search performed for: ${searchTerm}`);
+});
+
+When('el usuario escribe {string} en el campo de búsqueda', async function(searchTerm: string) {
+  fixture.logger.info(`Step: When el usuario escribe "${searchTerm}" en el campo de búsqueda`);
+  
+  const googlePage = new GoogleSearchPage(fixture.page);
+  await googlePage.typeSearchTerm(searchTerm);
+  
+  // Wait a bit for suggestions to appear
+  await fixture.page.waitForTimeout(1000);
+  
+  fixture.logger.info(`Typed search term: ${searchTerm}`);
+});
+
+/**
+ * Then Steps - Assertions
+ */
+
+Then('el usuario debe ver resultados de búsqueda', async function() {
+  fixture.logger.info('Step: Then el usuario debe ver resultados de búsqueda');
+  
+  const googlePage = new GoogleSearchPage(fixture.page);
+  const areResultsVisible = await googlePage.areResultsVisible();
+  
+  expect(areResultsVisible).toBe(true);
+  
+  const resultCount = await googlePage.getResultCount();
+  fixture.logger.info(`Results are visible - Found ${resultCount} results`);
+  
+  expect(resultCount).toBeGreaterThan(0);
+});
+
+Then('los resultados deben contener {string}', async function(expectedText: string) {
+  fixture.logger.info(`Step: Then los resultados deben contener "${expectedText}"`);
+  
+  const containsText = await GoogleSearchTask.verifyResultsContainText(fixture, expectedText);
+  
+  expect(containsText).toBe(true);
+  
+  fixture.logger.info(`Results contain expected text: ${expectedText}`);
+});
+
+Then('el usuario debe ver sugerencias de búsqueda', async function() {
+  fixture.logger.info('Step: Then el usuario debe ver sugerencias de búsqueda');
+  
+  const googlePage = new GoogleSearchPage(fixture.page);
+  const areSuggestionsVisible = await googlePage.areSuggestionsVisible();
+  
+  expect(areSuggestionsVisible).toBe(true);
+  
+  const suggestionCount = await googlePage.getSuggestionCount();
+  fixture.logger.info(`Suggestions are visible - Found ${suggestionCount} suggestions`);
+  
+  expect(suggestionCount).toBeGreaterThan(0);
+});
+
+Then('las sugerencias deben contener {string}', async function(expectedText: string) {
+  fixture.logger.info(`Step: Then las sugerencias deben contener "${expectedText}"`);
+  
+  const containsText = await GoogleSearchTask.verifySuggestionsContainText(fixture, expectedText);
+  
+  expect(containsText).toBe(true);
+  
+  fixture.logger.info(`Suggestions contain expected text: ${expectedText}`);
+});
+
+Then('el usuario debe ver un mensaje indicando que no hay resultados', async function() {
+  fixture.logger.info('Step: Then el usuario debe ver un mensaje indicando que no hay resultados');
+  
+  const googlePage = new GoogleSearchPage(fixture.page);
+  
+  // Check if no results message is visible OR if result count is 0
+  const isNoResultsVisible = await googlePage.isNoResultsMessageVisible();
+  const resultCount = await googlePage.getResultCount();
+  
+  const noResults = isNoResultsVisible || resultCount === 0;
+  
+  expect(noResults).toBe(true);
+  
+  fixture.logger.info('No results message or empty results confirmed');
+});

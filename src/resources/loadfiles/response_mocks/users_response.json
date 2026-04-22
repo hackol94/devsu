@@ -1,0 +1,27 @@
+{
+  "status": "success",
+  "data": {
+    "userId": "USER-001",
+    "documentType": "CC",
+    "documentNumber": "1234567890",
+    "firstName": "Juan",
+    "secondName": "Carlos",
+    "firstLastname": "Pérez",
+    "secondLastname": "García",
+    "email": "juan.perez@example.com",
+    "cellphone": "+573001234567",
+    "status": "ACTIVE",
+    "registeredAt": "2023-01-15T10:30:00Z",
+    "lastLogin": "2024-01-10T14:20:00Z",
+    "profile": {
+      "address": "Calle 123 #45-67",
+      "city": "Bogotá",
+      "country": "Colombia",
+      "dateOfBirth": "1990-05-15"
+    }
+  },
+  "metadata": {
+    "timestamp": "2024-01-10T14:20:00Z",
+    "requestId": "req-67890-fghij"
+  }
+}
