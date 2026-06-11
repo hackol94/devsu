@@ -1,0 +1,14 @@
+{
+  "name": "devsu-api-karate",
+  "version": "1.0.0",
+  "description": "Automatizacion de APIs con Karate Framework",
+  "scripts": {
+    "test": "node test.js",
+    "test:demoblaze": "node test.js karate/demoblaze",
+    "test:petstore-pets": "node test.js karate/petstore-pets",
+    "test:petstore-users": "node test.js karate/petstore-users"
+  },
+  "devDependencies": {
+    "@karatelabs/karate": "^0.2.2"
+  }
+}
