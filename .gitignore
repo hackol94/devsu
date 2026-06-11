@@ -49,6 +49,7 @@ temp/
 *.tmp
 test_output.txt
 api test.md
+project_analysis.md
 
 # Coverage
 coverage/
