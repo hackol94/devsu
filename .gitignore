@@ -7,9 +7,10 @@ yarn.lock
 dist/
 build/
 *.tsbuildinfo
-
+.kiro/
 # Test results and reports
 test-results/
+target/
 playwright-report/
 @rerun.txt
 

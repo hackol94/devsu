@@ -123,10 +123,14 @@ export async function mergeReports(): Promise<void> {
       if (scenario.steps) {
         for (const step of scenario.steps) {
           if (step.embeddings && Array.isArray(step.embeddings)) {
-            // Filter embeddings to keep only PNG and JPEG images
+            // Filter embeddings to keep images and text attachments
             const originalCount = step.embeddings.length;
             step.embeddings = step.embeddings.filter((emb: CucumberEmbedding) => 
-              emb.mime_type === 'image/png' || emb.mime_type === 'image/jpeg'
+              emb.mime_type === 'image/png' || 
+              emb.mime_type === 'image/jpeg' ||
+              emb.mime_type === 'text/plain' ||
+              emb.mime_type === 'text/html' ||
+              emb.mime_type === 'application/json'
             );
             
             if (originalCount !== step.embeddings.length) {

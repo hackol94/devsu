@@ -1,9 +1,12 @@
-import { Before, After, BeforeAll, AfterAll, Status } from '@cucumber/cucumber';
+import { Before, After, BeforeAll, AfterAll, Status, setDefaultTimeout } from '@cucumber/cucumber';
 import { Page, request } from '@playwright/test';
 import * as fs from 'fs';
 import { BrowserManager } from '../helper/browser/BrowserManager';
 import { PageFixture } from './pageFixture';
 import { createLogger } from '../helper/util/logger';
+
+// Timeout de 60 segundos para escenarios E2E
+setDefaultTimeout(60000);
 
 let fixture: PageFixture;
 let browserManager: BrowserManager;
@@ -58,7 +61,8 @@ Before(async function({ pickle }) {
       logger
     );
     
-    await setupNetworkCapture(browserManager.page, this, tags.find(tag => tag.startsWith('@TEST_'))?.replace('@', '') || null);
+    // Network capture desactivado para evitar ruido en consola
+    // await setupNetworkCapture(browserManager.page, this, tags.find(tag => tag.startsWith('@TEST_'))?.replace('@', '') || null);
   } else {
     // API ONLY: Use request context from playwright directly
     const apiContext = await request.newContext();

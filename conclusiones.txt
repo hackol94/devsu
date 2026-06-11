@@ -1,0 +1,115 @@
+CONCLUSIONES Y HALLAZGOS
+
+Durante el desarrollo de los 6 ejercicios me encontré con varias situaciones interesantes
+que vale la pena documentar.
+
+---
+
+API - DemoBlaze
+
+Lo primero que noté es que esta API no sigue convenciones REST estándar. Siempre responde
+con HTTP 200 sin importar si la operación fue exitosa o no. Los errores vienen dentro del body
+como un JSON con campo "errorMessage". Esto me obligó a validar el contenido del body en vez
+del status code, lo cual no es lo ideal pero es como funciona.
+
+Otro detalle importante: el password se debe enviar codificado en Base64. Esto no está
+documentado en ningún lado, lo descubrí analizando las peticiones que hace la web real
+desde el DevTools del navegador.
+
+En resumen los responses son así:
+- Registro exitoso: body vacío ("")
+- Usuario duplicado: {"errorMessage":"This user already exist."}
+- Login exitoso: "Auth_token: <token_base64>"
+- Login fallido: {"errorMessage":"Wrong password."}
+
+---
+
+API - PetStore Mascotas
+
+Esta API está mucho mejor organizada que DemoBlaze. Tiene Swagger, los endpoints siguen
+REST correctamente y los status codes son coherentes (200 para éxito, 404 para no encontrado).
+
+El único tema es que el servidor es público y compartido. Los datos que uno crea pueden ser
+modificados o eliminados por otros usuarios que estén probando al mismo tiempo. Por eso
+genero IDs dinámicos con Date.now() para minimizar colisiones.
+
+El endpoint findByStatus puede devolver cientos o miles de registros porque todo el mundo
+deja mascotas con status "sold" ahí tiradas.
+
+---
+
+API - PetStore Usuarios
+
+El CRUD de usuarios funciona bien. Lo que sí noté es que después de hacer un PUT para
+actualizar, si hago el GET inmediatamente a veces trae los datos viejos. Tuve que meter
+un delay de 2 segundos entre el PUT y el GET de verificación para que la propagación
+del servidor alcance.
+
+El DELETE responde 200 con el username en el campo "message" del response.
+
+---
+
+E2E - DemoBlaze
+
+La página tiene un video HLS que nunca termina de cargar, lo cual hace que
+waitForLoadState('networkidle') se quede colgado indefinidamente. Tuve que cambiar
+a 'domcontentloaded' y esperar selectores específicos en su lugar.
+
+Otro tema: al agregar un producto al carrito, DemoBlaze muestra un alert nativo del
+navegador (no un modal HTML). Para manejarlo hay que registrar el handler de dialog
+ANTES de hacer click en "Add to cart", si no el dialog se descarta solo y Playwright
+no lo captura.
+
+El formulario de Place Order no tiene ninguna validación, acepta campos vacíos y
+confirma la compra igual. El mensaje final es un sweet-alert con "Thank you for your purchase!".
+
+---
+
+E2E - SauceDemo
+
+De las tres aplicaciones es la más estable y la mejor pensada para automatización.
+Los elementos usan atributos data-test que hacen los selectores súper directos y
+confiables, no dependen de clases CSS ni estructura del DOM.
+
+El flujo es lineal: login → inventario → carrito → checkout info → overview → finish.
+El badge del carrito solo aparece cuando hay items, si está vacío el elemento ni existe
+en el DOM.
+
+Las credenciales reales son standard_user / secret_sauce (en inglés, no en español
+como sugería el enunciado del ejercicio).
+
+---
+
+E2E - OpenCart
+
+Esta fue la más complicada de automatizar. El checkout usa un accordion donde cada
+sección se carga por AJAX al completar la anterior. Esto significa que hay que esperar
+con waitForSelector que cada panel aparezca antes de interactuar.
+
+El dropdown de países dispara una carga asíncrona de regiones/estados, así que hay
+que meter un waitForTimeout entre seleccionar el país y seleccionar la región, si no
+el dropdown de regiones está vacío cuando lo intentas usar.
+
+También hay un checkbox de "Terms & Conditions" que hay que aceptar antes de poder
+confirmar el método de pago. Si no se marca, el botón no hace nada.
+
+La confirmación dice "Your order has been placed!" en el h1 del contenido.
+
+---
+
+LIMITACIONES GENERALES
+
+- Las APIs públicas (PetStore) son compartidas, los datos son volátiles
+- OpenCart como ambiente de demo puede tener caídas o lentitud
+- DemoBlaze no tiene documentación de API, todo fue ingeniería inversa
+- La generación de IDs con Date.now() puede colisionar en ejecuciones paralelas (raro pero posible)
+
+---
+
+STACK UTILIZADO
+
+- Playwright 1.52 (automatización de browser + cliente HTTP nativo)
+- Cucumber.js 11 (BDD con Gherkin)
+- TypeScript 5.8
+- Winston para logging
+- Node.js 18+
