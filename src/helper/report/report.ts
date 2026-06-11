@@ -53,7 +53,7 @@ export async function generateHTMLReport(): Promise<void> {
     customData: {
       title: 'Test Execution Report',
       data: [
-        { label: 'Project', value: 'siigo-qa-playwrigth-api-e2e' },
+        { label: 'Project', value: 'devsu-qa-playwrigth-api-e2e' },
         { label: 'Environment', value: process.env.ENV || 'dev' },
         { label: 'Execution Date', value: new Date().toLocaleString() },
         { label: 'Base URL', value: process.env.BASEURL || 'N/A' }
