@@ -1,0 +1,11 @@
+{
+  "test": [
+    {
+      "test_id": "@default",
+      "route": "**/api/v1/users/**",
+      "mockStatus": true,
+      "httpCodeResponse": 200,
+      "bodyresposen": "users_response.json"
+    }
+  ]
+}
