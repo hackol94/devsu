@@ -1,0 +1,11 @@
+{
+  "firstName": "Ana",
+  "lastName": "Garcia",
+  "email": "ana.garcia.test@mailinator.com",
+  "telephone": "3001234567",
+  "address1": "Calle 123 # 45-67",
+  "city": "Bogota",
+  "postcode": "110111",
+  "country": "Colombia",
+  "region": "Bogota D.C."
+}
