@@ -1,5 +1,5 @@
 {
-  "name": "siigo-qa-playwrigth-api-e2e",
+  "name": "devsu-qa-playwrigth-api-e2e",
   "version": "1.0.0",
   "description": "Framework skeleton de automatización E2E con Playwright + Cucumber",
   "main": "index.js",

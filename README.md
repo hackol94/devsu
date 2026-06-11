@@ -1,207 +1,258 @@
-# Prueba Técnica QA Engineer — Siigo
+# 📋 Análisis del Proyecto: `devsu-playwrigth-api-e2e`
 
-Framework de automatización E2E con **Playwright + Cucumber (BDD)** desarrollado como respuesta a la prueba técnica para QA Engineer.
+## 🧱 Resumen Ejecutivo
 
-## Contenido de la prueba
-
-| # | Punto | Ubicación |
-|---|-------|-----------|
-| 1 | Diseño de casos de prueba (técnicas + Gherkin + Bug report) | [`Test_Case_Design.md`](Test_Case_Design.md) |
-| 2 | Automatización Frontend E2E — Login + Crear Cliente | `src/test/features/UI/` |
-| 3 | Automatización Backend — Endpoints ReqRes (GET, POST, PUT, DELETE) | `src/test/features/API/` |
-| 4 | Evidencias de ejecución | [Ver sección](#-evidencias) |
+Framework de automatización **E2E híbrido** (UI + API) construido sobre **Playwright + Cucumber (BDD)** con TypeScript. Su objetivo es probar la plataforma **Siigo/Devsu** de manera integral, cubriendo flujos de usuario en navegador y verificación de servicios REST.
 
 ---
 
-## Tecnologías
+## 🏗️ Stack Tecnológico
 
-- **Playwright** — Automatización de navegador
-- **Cucumber** — BDD con Gherkin en español
-- **TypeScript** — Tipado estático
-- **Patrón Screenplay** — Tasks, Pages, Steps separados
-- **multiple-cucumber-html-reporter** — Reportes HTML unificados
-
----
-
-## Prerequisitos
-
-- Node.js >= 18.x
-- NPM >= 9.x
-
-## Instalación
-
-```bash
-npm install
-```
-
-> `pretest` instala los navegadores de Playwright y prepara los directorios de reportes automáticamente.
-
-## Configuración
-
-El framework soporta múltiples ambientes mediante archivos `.env`:
-
-| Archivo | Ambiente |
-|---------|----------|
-| `.env.dev` | Desarrollo (default) |
-| `.env.stg` | Staging |
-| `.env.prod` | Producción |
+| Categoría | Herramienta | Versión |
+|-----------|-------------|---------|
+| Core UI/API | Playwright | `^1.52.0` |
+| BDD Runner | Cucumber-JS | `^11.3.0` |
+| Lenguaje | TypeScript | `^5.8.3` |
+| Runtime | Node.js | `>=18.0.0` |
+| Reportes | multiple-cucumber-html-reporter | `^3.6.2` |
+| Logging | Winston | `^3.13.0` |
+| Validación esquemas | Joi | `^17.13.3` |
+| Ejecución remota | LambdaTest (CDPoverWS) | `^4.0.8` |
+| Quality Gate | SonarScanner | `^3.1.0` |
+| Cross-env | concurrently + cross-env | - |
 
 ---
 
-## Ejecución de pruebas
-
-### Comandos principales
-
-```bash
-# Ejecutar TODAS las pruebas (UI + API)
-npm run test:all
-
-# Solo Login
-npm run test:login
-
-# Solo Crear Cliente
-npm run test:crear-cliente
-
-# Solo pruebas API (ReqRes)
-npm run test --TAGS="@API"
-
-# Cualquier tag específico
-npm run test --TAGS="@TEST_TC-200"
-```
-
-### Por navegador
-
-```bash
-npm run chrome:test
-npm run firefox:test
-npm run safari:test
-npm run parallelCrossBrowser
-```
-
-### Pipeline de reportes
-
-El reporte HTML se genera automáticamente al finalizar cada ejecución:
-
-1. **pretest** → Limpia reportes anteriores y crea directorios
-2. **test** → Cucumber ejecuta los escenarios y genera JSON
-3. **posttest** → Merge de JSONs + generación de HTML
-
-El reporte queda en: `target/site/cypress/index.html`
-
----
-
-## Estructura del proyecto
+## 🗂️ Arquitectura y Estructura de Carpetas
 
 ```
-├── src/
-│   ├── helper/
-│   │   ├── browser/          # BrowserManager (Chromium, Firefox, WebKit)
-│   │   ├── mock/             # Sistema de mocks por test ID
-│   │   ├── report/           # Pipeline de reportes (init → merge → HTML)
-│   │   ├── util/             # Logger (Winston)
-│   │   └── wrapper/          # Wrappers de interacciones y asserts
-│   ├── hooks/
-│   │   ├── hooks.ts          # Before/After hooks de Cucumber
-│   │   └── pageFixture.ts    # Estado compartido entre steps
-│   ├── pages/                # Page Objects (LoginPage, ClientPage)
-│   ├── tasks/
-│   │   ├── api/              # ReqResTask (GET, POST, PUT, DELETE)
-│   │   └── ui/               # LoginTask, CreateClientTask
-│   └── test/
-│       ├── features/
-│       │   ├── API/          # reqres.feature
-│       │   └── UI/           # login_siigo.feature, crear_cliente.feature
-│       └── steps/
-│           ├── api/          # reqresSteps.ts
-│           └── ui/           # loginSteps.ts, crearClienteSteps.ts
-├── docs/                     # Evidencias de ejecución
-├── Test_Case_Design.md       # Punto 1: Diseño de casos de prueba
-├── cucumber.js               # Configuración de Cucumber
-├── tsconfig.json             # Configuración de TypeScript
-└── package.json              # Scripts y dependencias
+src/
+├── pages/              # Page Object Model (POM)
+│   ├── LoginPage.ts    # Localizadores + métodos de login
+│   └── ClientPage.ts   # Localizadores + métodos de creación de clientes
+│
+├── tasks/              # Capa de Tareas (orquestación de acciones)
+│   ├── ui/
+│   │   ├── LoginTask.ts         # Flujo completo de login
+│   │   └── CreateClientTask.ts  # Flujo completo de creación de cliente
+│   └── api/
+│       └── ReqResTask.ts        # Llamadas REST a ReqRes API
+│
+├── test/
+│   ├── features/       # Archivos Gherkin (.feature)
+│   │   ├── UI/
+│   │   │   ├── login_siigo.feature
+│   │   │   └── crear_cliente.feature
+│   │   └── API/
+│   │       └── reqres.feature
+│   └── steps/          # Implementación de step definitions
+│       ├── ui/
+│       │   ├── loginSteps.ts
+│       │   └── crearClienteSteps.ts
+│       └── api/
+│           └── reqresSteps.ts
+│
+├── hooks/
+│   ├── hooks.ts        # Before/After hooks del ciclo Cucumber
+│   └── pageFixture.ts  # Estado compartido entre pasos (contexto global)
+│
+├── helper/
+│   ├── browser/
+│   │   └── BrowserManager.ts   # Singleton de gestión del browser
+│   ├── mock/
+│   │   └── MockSystem.ts       # Sistema de intercepción de red
+│   ├── report/
+│   │   ├── init.ts
+│   │   ├── mergeReports.ts     # Fusión de reportes JSON
+│   │   ├── report.ts           # Generación HTML
+│   │   └── postReport.ts
+│   ├── util/
+│   │   └── logger.ts           # Winston logger por escenario
+│   └── wrapper/
+│       ├── asserts/            # (Vacío - preparado para wrappers de assertions)
+│       └── interactions/       # (Vacío - preparado para wrappers de interacción)
+│
+└── resources/
+    ├── data/           # (Vacío - reservado para datos de prueba)
+    └── loadfiles/      # Archivos de respuestas mock (mocks.json + JSONs)
 ```
 
 ---
 
-## Punto 1 — Diseño de casos de prueba
+## 🎯 Patrones de Diseño Implementados
 
-Documentado en [`Test_Case_Design.md`](Test_Case_Design.md), incluye:
+### 1. Page Object Model (POM)
+Cada página tiene una clase dedicada con:
+- `Elements` (objeto `as const`) → centraliza todos los localizadores
+- Getters para exponer `Locator` objetos tipados
+- Métodos de acción (`fillForm`, `navigateToCreateClient`)
+- Métodos de validación (`verifySuccess`, `isPageLoaded`)
 
-- **Partición de equivalencias** — Clases válidas e inválidas por campo
-- **Valores límites** — Extremos de rangos para identificación, nombre, dirección
-- **Tablas de decisión** — Combinaciones de condiciones y resultados esperados
-- **Transición de estados** — Diagrama del flujo del formulario
-- **Casos Gherkin** — 2 por nivel (unitario, integración, E2E)
-- **Reporte de bug** — BUG-001: Error en cálculo de DV para NITs
+### 2. Screenplay Pattern (Tareas)
+Capa de `Tasks` que orquesta acciones del POM:
+```
+Step Definition → Task → Page Object → Playwright
+```
+Esto desacopla el "qué" (step) del "cómo" (task/page).
+
+### 3. Singleton Pattern
+- `BrowserManager` → instancia única del browser compartida entre hooks
+- `MockSystem` → carga la configuración de mocks una sola vez
+
+### 4. Fixture Pattern
+`PageFixture` actúa como contenedor de estado compartido entre todos los steps de un escenario (page, context, browser, logger, testId, etc.)
 
 ---
 
-## Punto 2 — Automatización Frontend E2E
+## 🔄 Flujo de Ejecución
 
-### Escenarios implementados
+```mermaid
+graph TD
+    A[npm run test] --> B[BeforeAll: dotenv + BrowserManager init]
+    B --> C[Before Hook por Escenario]
+    C -->|@layer:Frontend| D[Lanzar Browser + PageFixture UI]
+    C -->|Sin tag frontend| E[APIRequestContext + PageFixture API]
+    D --> F[Network Capture: XHR/Fetch → Cucumber Attachments]
+    E --> G[Steps API puras]
+    F --> H[Steps UI: Login → Navegación → Formulario]
+    H --> I[After Hook]
+    G --> I
+    I -->|FAILED| J[Screenshot automático → Embed en reporte]
+    I --> K[TestResult → BrowserManager.addTestResult]
+    K --> L[closeBrowser]
+    L --> M[posttest: postReport.ts]
+    M --> N[Reporte JSON + HTML en target/]
+```
+
+---
+
+## 📝 Escenarios de Prueba Actuales
+
+### 🖥️ UI Tests
 
 | Tag | Feature | Descripción |
 |-----|---------|-------------|
-| `@TEST_TC-300` | `login_siigo.feature` | Login exitoso con credenciales válidas |
-| `@TEST_TC-200` | `crear_cliente.feature` | Creación exitosa de un cliente persona |
+| `@TEST_TC-300` | login_siigo | Login exitoso con credenciales válidas |
+| `@TEST_TC-200` | crear_cliente | Creación exitosa de cliente persona |
 
-### Flujo
+### 🌐 API Tests (ReqRes.in)
 
-1. Navega a `https://qastaging.siigo.com/#/login`
-2. Ingresa credenciales (usuario/contraseña desde `.env`)
-3. Valida que el dashboard cargue
-4. Navega a "+Crear" → "Clientes"
-5. Llena formulario con datos de prueba
-6. Valida mensaje de éxito y redirección al perfil
-
----
-
-## Punto 3 — Automatización Backend (ReqRes)
-
-### Escenarios implementados
-
-| Verbo | Escenario | Endpoint |
-|-------|-----------|----------|
-| GET | Listar usuarios paginados | `/api/users?page=2` |
-| GET | Obtener usuario por ID | `/api/users/2` |
-| GET | Usuario inexistente (404) | `/api/users/999` |
-| POST | Crear usuario | `/api/users` |
-| PUT | Actualizar usuario | `/api/users/2` |
-| DELETE | Eliminar usuario | `/api/users/2` |
-| POST | Login exitoso | `/api/login` |
-| POST | Login fallido sin password | `/api/login` |
-
-Todos los endpoints apuntan a `https://reqres.in/api` con autenticación via header `x-api-key`.
+| Tag | Método | Descripción |
+|-----|--------|-------------|
+| `@GET @smoke` | GET /users | Listar usuarios pág. 2 |
+| `@POST` | POST /users | Crear usuario |
+| `@PUT` | PUT /users/2 | Actualizar usuario |
+| `@DELETE` | DELETE /users/2 | Eliminar usuario |
+| `@GET` | GET /users/2 | Usuario por ID |
+| `@GET @negative` | GET /users/999 | Usuario inexistente (404) |
+| `@POST @auth` | POST /login | Login exitoso |
+| `@POST @auth @negative` | POST /login | Login sin password (400) |
 
 ---
 
-## Evidencias
+## ⚙️ Configuración y Ambientes
 
-### Ejecución de pruebas
-
-![Evidencia de ejecución 0](docs/Evidencia0.png)
-
-![Evidencia de ejecución 1](docs/Evidencia1.png)
-
----
-
-## Reportes
-
-Después de ejecutar las pruebas, el reporte HTML se genera automáticamente en:
-
-```
-target/site/cypress/index.html
-```
-
-Para generar reportes manualmente:
+El proyecto soporta **3 entornos** via variables de entorno:
 
 ```bash
-npm run mergeReports
-npm run generate:merged:html
+ENV=dev   → .env.dev
+ENV=stg   → .env.stg
+ENV=prod  → .env.prod
 ```
+
+Variables clave esperadas:
+- `USER_EMAIL`, `USER_PASS` → Credenciales de login UI
+- `REQRES_API_KEY` → API key para ReqRes
+- `LT_USERNAME`, `LT_ACCESS_KEY` → Credenciales LambdaTest
+- `BROWSER` → chrome_latest (default) / firefox / Safari
+- `ltDevice=true` → Activa ejecución remota en LambdaTest
+- `viewPort=true` + `viewPort_width/height` → Viewport personalizado
 
 ---
 
-## Autor
+## 📊 Sistema de Reportes
 
-Prueba técnica desarrollada para el proceso de selección de QA Engineer en Siigo.
+1. **Durante ejecución**: Cucumber genera `json-report-{timestamp}.json` + `html-report-{timestamp}.html`
+2. **mergeReports.ts**: Fusiona múltiples runs en un único JSON (útil en ejecución paralela/rerun)
+3. **report.ts**: Genera reporte HTML consolidado con `multiple-cucumber-html-reporter`
+4. **Screenshots automáticos**: En fallos, captura JPEG (quality=15) y los embebe en el reporte
+
+---
+
+## 🔧 Sistema de Mocks (MockSystem.ts)
+
+Permite interceptar llamadas de red con `page.route()`:
+- Configurado desde `src/resources/loadfiles/mocks.json`
+- Respuestas JSON en `src/resources/loadfiles/response_mocks/`
+- Soporta matching por `test_id` y lista de exclusión `exclude[]`
+- Glob → RegEx para patrones de URL
+- Validación de esquema con Joi (modo `updateSchema`)
+
+> ⚠️ El mock system está implementado pero **no se activa en el hook actual** — está preparado para ser llamado desde `hooks.ts`.
+
+---
+
+## ✅ Fortalezas del Proyecto
+
+- ✅ **Arquitectura limpia** con separación clara de responsabilidades (POM → Tasks → Steps → Hooks)
+- ✅ **Soporte híbrido** UI + API en el mismo framework
+- ✅ **Logging por escenario** con Winston (trazabilidad alta)
+- ✅ **Network capture automático** embebido en reportes
+- ✅ **Multi-browser**: Chrome, Firefox, WebKit/Safari
+- ✅ **Ejecución remota** lista (LambdaTest)
+- ✅ **Rerun automático** con `@rerun.txt`
+- ✅ **Sistema de mocks** robusto y flexible
+- ✅ **Multiambiente** (dev, stg, prod)
+- ✅ **Integración SonarQube** configurada
+
+---
+
+## ⚠️ Áreas de Mejora Identificadas
+
+### Críticas
+1. **`LoginPage.ts` tiene getters rotos**: Los getters `cancelButton`, `welcomeLabel`, `pageTitleLabel`, `forgotPasswordLink`, `registerLink` referencian claves que **no existen** en el objeto `Elements` (`BTN_CANCEL`, `LBL_WELCOME`, `LBL_PAGE_TITLE`, `LINK_FORGOT_PASSWORD`, `LINK_REGISTER`). Causaría errores en runtime si se usan.
+
+2. **Credenciales hardcodeadas en steps**: En `crearClienteSteps.ts`, las credenciales están como fallback literal en el código (`'J1h4{zMTV3'`). Deberían estar solo en `.env`.
+
+3. **`wrapper/asserts/` y `wrapper/interactions/` vacíos**: La promesa de wrappers reutilizables no está implementada.
+
+### Moderadas
+4. **`parallel: 1` en cucumber.js**: El paralelismo está desactivado, por lo que `concurrently` para cross-browser no funcionaría correctamente sin ajustar esto.
+5. **`waitForTimeout` hardcodeados**: Hay timeouts fijos (`1000ms`, `2000ms`) en `ClientPage.ts` que son frágiles; mejor usar esperas explícitas de Playwright.
+6. **Screenshot quality muy baja**: `quality: 15` en JPEG hace los screenshots difícilmente legibles.
+7. **`src/resources/data/` vacío**: No hay fixture de datos externos; los datos están en el `.feature` file.
+8. **`models/` vacío**: La carpeta existe pero no tiene ningún modelo de datos TypeScript.
+
+### Menores
+9. El nombre del repo dice "playwrigth" (typo: debería ser "playwright").
+10. El path de screenshots apunta a `target/site/cypress/screenshots` — nombre heredado de Cypress, confuso en un proyecto Playwright.
+
+---
+
+## 🏃 Comandos Principales
+
+```bash
+# Instalar + correr todos los tests
+npm test
+
+# Solo UI - Login
+npm run test:login
+
+# Solo UI - Crear Cliente
+npm run test:crear-cliente
+
+# Todos (Frontend + API)
+npm run test:all
+
+# Cross-browser paralelo
+npm run parallelCrossBrowser
+
+# Solo Chrome
+npm run chrome:test
+
+# Re-ejecutar fallidos
+npm run test:failed
+
+# Generar reporte HTML consolidado
+npm run generate:merged:html
+```
