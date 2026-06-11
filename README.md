@@ -1,32 +1,68 @@
-# Prueba Técnica QA Engineer — Siigo
+# Devsu QA — Framework de Automatización E2E
 
-Framework de automatización E2E con **Playwright + Cucumber (BDD)** desarrollado como respuesta a la prueba técnica para QA Engineer.
-
-## Contenido de la prueba
-
-| # | Punto | Ubicación |
-|---|-------|-----------|
-| 1 | Diseño de casos de prueba (técnicas + Gherkin + Bug report) | [`Test_Case_Design.md`](Test_Case_Design.md) |
-| 2 | Automatización Frontend E2E — Login + Crear Cliente | `src/test/features/UI/` |
-| 3 | Automatización Backend — Endpoints ReqRes (GET, POST, PUT, DELETE) | `src/test/features/API/` |
-| 4 | Evidencias de ejecución | [Ver sección](#-evidencias) |
+Framework de automatización de pruebas end-to-end construido con **Playwright** y **Cucumber (BDD)** en TypeScript. Cubre pruebas de UI y API bajo el enfoque Screenplay Pattern, con soporte para ejecución en múltiples navegadores, ambientes y reporte automático de resultados.
 
 ---
 
 ## Tecnologías
 
-- **Playwright** — Automatización de navegador
-- **Cucumber** — BDD con Gherkin en español
-- **TypeScript** — Tipado estático
-- **Patrón Screenplay** — Tasks, Pages, Steps separados
-- **multiple-cucumber-html-reporter** — Reportes HTML unificados
+| Herramienta | Versión | Uso |
+|---|---|---|
+| Node.js | ≥ 18.0.0 | Runtime |
+| TypeScript | ^5.8 | Lenguaje principal |
+| Playwright | ^1.52 | Automatización UI y cliente HTTP |
+| Cucumber.js | ^11.3 | Motor BDD / Gherkin |
+| Winston | ^3.13 | Logging |
+| dotenv | ^16.4 | Gestión de variables de entorno |
+| concurrently | ^8.2 | Ejecución cross-browser en paralelo |
+| SonarQube | — | Análisis estático de código |
 
 ---
 
-## Prerequisitos
+## Estructura del proyecto
 
-- Node.js >= 18.x
-- NPM >= 9.x
+```
+src/
+├── helper/
+│   ├── browser/        # BrowserManager — Singleton para gestión del navegador (local y LambdaTest)
+│   ├── env/            # Carga de variables de entorno por ambiente (.env.dev, .env.stg, .env.prod)
+│   ├── mock/           # Sistema de mocks para interceptación de red
+│   ├── report/         # Generación, merge y publicación de reportes HTML
+│   ├── types/          # Tipado global de variables de entorno (env.d.ts)
+│   ├── util/           # Logger configurado con Winston
+│   └── wrapper/
+│       ├── asserts/    # Wrappers de aserciones reutilizables
+│       └── interactions/ # Wrappers de interacciones con la UI
+├── hooks/
+│   ├── hooks.ts        # Hooks de Cucumber (BeforeAll, Before, After, AfterAll)
+│   └── pageFixture.ts  # Contenedor de estado compartido entre steps, tasks y pages
+├── models/             # Modelos de datos / DTOs
+├── pages/              # Page Objects (capa de abstracción de UI)
+├── resources/
+│   ├── data/           # Datos de prueba
+│   └── loadfiles/      # Archivos de carga: mocks y respuestas simuladas
+├── setup/              # Configuración inicial del framework
+├── tasks/
+│   ├── api/            # Tasks de API (Screenplay Pattern)
+│   └── ui/             # Tasks de UI (Screenplay Pattern)
+└── test/
+    ├── features/
+    │   ├── API/        # Escenarios Gherkin para pruebas de API
+    │   └── UI/         # Escenarios Gherkin para pruebas de UI
+    ├── navigateTo/     # Helpers de navegación
+    └── steps/
+        ├── api/        # Step definitions de API
+        └── ui/         # Step definitions de UI
+```
+
+---
+
+## Prerrequisitos
+
+- Node.js ≥ 18.0.0
+- npm ≥ 9.0.0
+
+---
 
 ## Instalación
 
@@ -34,174 +70,141 @@ Framework de automatización E2E con **Playwright + Cucumber (BDD)** desarrollad
 npm install
 ```
 
-> `pretest` instala los navegadores de Playwright y prepara los directorios de reportes automáticamente.
+Esto instala dependencias, descarga los binarios de Playwright e inicializa el reporte automáticamente gracias a los scripts `pretest` y `postinstall`.
 
-## Configuración
+---
 
-El framework soporta múltiples ambientes mediante archivos `.env`:
+## Configuración de ambientes
+
+Las variables de entorno se cargan desde `src/helper/env/` según el valor de la variable `ENV`:
 
 | Archivo | Ambiente |
-|---------|----------|
-| `.env.dev` | Desarrollo (default) |
+|---|---|
+| `.env.dev` | Desarrollo |
 | `.env.stg` | Staging |
 | `.env.prod` | Producción |
+
+Variables principales requeridas en cada archivo:
+
+```env
+BASEURL=https://...
+API_BASE_URL=https://...
+BROWSER=chrome_latest
+ENV=dev
+```
+
+> Los archivos `.env.*` están excluidos del repositorio. Solicítalos al equipo de QA.
 
 ---
 
 ## Ejecución de pruebas
 
-### Comandos principales
-
+### Todos los tests
 ```bash
-# Ejecutar TODAS las pruebas (UI + API)
-npm run test:all
+npm test
+```
 
-# Solo Login
-npm run test:login
-
-# Solo Crear Cliente
-npm run test:crear-cliente
-
-# Solo pruebas API (ReqRes)
-npm run test --TAGS="@API"
-
-# Cualquier tag específico
-npm run test --TAGS="@TEST_TC-200"
+### Por tag específico
+```bash
+npm run test --TAGS="@nombre_del_tag"
 ```
 
 ### Por navegador
-
 ```bash
 npm run chrome:test
 npm run firefox:test
 npm run safari:test
+```
+
+### Cross-browser en paralelo
+```bash
 npm run parallelCrossBrowser
 ```
 
-### Pipeline de reportes
-
-El reporte HTML se genera automáticamente al finalizar cada ejecución:
-
-1. **pretest** → Limpia reportes anteriores y crea directorios
-2. **test** → Cucumber ejecuta los escenarios y genera JSON
-3. **posttest** → Merge de JSONs + generación de HTML
-
-El reporte queda en: `target/site/cypress/index.html`
-
----
-
-## Estructura del proyecto
-
-```
-├── src/
-│   ├── helper/
-│   │   ├── browser/          # BrowserManager (Chromium, Firefox, WebKit)
-│   │   ├── mock/             # Sistema de mocks por test ID
-│   │   ├── report/           # Pipeline de reportes (init → merge → HTML)
-│   │   ├── util/             # Logger (Winston)
-│   │   └── wrapper/          # Wrappers de interacciones y asserts
-│   ├── hooks/
-│   │   ├── hooks.ts          # Before/After hooks de Cucumber
-│   │   └── pageFixture.ts    # Estado compartido entre steps
-│   ├── pages/                # Page Objects (LoginPage, ClientPage)
-│   ├── tasks/
-│   │   ├── api/              # ReqResTask (GET, POST, PUT, DELETE)
-│   │   └── ui/               # LoginTask, CreateClientTask
-│   └── test/
-│       ├── features/
-│       │   ├── API/          # reqres.feature
-│       │   └── UI/           # login_siigo.feature, crear_cliente.feature
-│       └── steps/
-│           ├── api/          # reqresSteps.ts
-│           └── ui/           # loginSteps.ts, crearClienteSteps.ts
-├── docs/                     # Evidencias de ejecución
-├── Test_Case_Design.md       # Punto 1: Diseño de casos de prueba
-├── cucumber.js               # Configuración de Cucumber
-├── tsconfig.json             # Configuración de TypeScript
-└── package.json              # Scripts y dependencias
+### Reejecutar tests fallidos
+```bash
+npm run test:failed
 ```
 
 ---
 
-## Punto 1 — Diseño de casos de prueba
+## Tags disponibles
 
-Documentado en [`Test_Case_Design.md`](Test_Case_Design.md), incluye:
+Los escenarios se etiquetan para controlar su ejecución:
 
-- **Partición de equivalencias** — Clases válidas e inválidas por campo
-- **Valores límites** — Extremos de rangos para identificación, nombre, dirección
-- **Tablas de decisión** — Combinaciones de condiciones y resultados esperados
-- **Transición de estados** — Diagrama del flujo del formulario
-- **Casos Gherkin** — 2 por nivel (unitario, integración, E2E)
-- **Reporte de bug** — BUG-001: Error en cálculo de DV para NITs
-
----
-
-## Punto 2 — Automatización Frontend E2E
-
-### Escenarios implementados
-
-| Tag | Feature | Descripción |
-|-----|---------|-------------|
-| `@TEST_TC-300` | `login_siigo.feature` | Login exitoso con credenciales válidas |
-| `@TEST_TC-200` | `crear_cliente.feature` | Creación exitosa de un cliente persona |
-
-### Flujo
-
-1. Navega a `https://qastaging.siigo.com/#/login`
-2. Ingresa credenciales (usuario/contraseña desde `.env`)
-3. Valida que el dashboard cargue
-4. Navega a "+Crear" → "Clientes"
-5. Llena formulario con datos de prueba
-6. Valida mensaje de éxito y redirección al perfil
-
----
-
-## Punto 3 — Automatización Backend (ReqRes)
-
-### Escenarios implementados
-
-| Verbo | Escenario | Endpoint |
-|-------|-----------|----------|
-| GET | Listar usuarios paginados | `/api/users?page=2` |
-| GET | Obtener usuario por ID | `/api/users/2` |
-| GET | Usuario inexistente (404) | `/api/users/999` |
-| POST | Crear usuario | `/api/users` |
-| PUT | Actualizar usuario | `/api/users/2` |
-| DELETE | Eliminar usuario | `/api/users/2` |
-| POST | Login exitoso | `/api/login` |
-| POST | Login fallido sin password | `/api/login` |
-
-Todos los endpoints apuntan a `https://reqres.in/api` con autenticación via header `x-api-key`.
-
----
-
-## Evidencias
-
-### Ejecución de pruebas
-
-![Evidencia de ejecución 0](docs/Evidencia0.png)
-
-![Evidencia de ejecución 1](docs/Evidencia1.png)
+| Tag | Descripción |
+|---|---|
+| `@layer:Frontend` | Pruebas de UI — activa el navegador |
+| `@API` | Pruebas de API — solo contexto HTTP |
+| `@TEST_TC-XXX` | Identificador del caso de prueba (Xray) |
 
 ---
 
 ## Reportes
 
-Después de ejecutar las pruebas, el reporte HTML se genera automáticamente en:
-
-```
-target/site/cypress/index.html
-```
-
-Para generar reportes manualmente:
+Los reportes se generan automáticamente en `target/site/cypress/` al finalizar la ejecución.
 
 ```bash
-npm run mergeReports
+# Generar reporte HTML consolidado
 npm run generate:merged:html
+
+# Mergear múltiples reportes JSON
+npm run mergeReports
 ```
 
 ---
 
-## Autor
+## Arquitectura
 
-Prueba técnica desarrollada para el proceso de selección de QA Engineer en Siigo.
+El framework sigue el **Screenplay Pattern**:
+
+- **Features** → describen el comportamiento en Gherkin
+- **Steps** → traducen los pasos Gherkin a acciones
+- **Tasks** → agrupan acciones de negocio reutilizables
+- **Pages** → encapsulan los selectores y acciones sobre la UI
+- **PageFixture** → estado compartido entre todos los componentes del escenario
+
+Los hooks de Cucumber gestionan el ciclo de vida:
+- `BeforeAll` → carga el ambiente e inicializa el BrowserManager
+- `Before` → lanza el navegador (UI) o crea contexto HTTP (API) según los tags
+- `After` → captura screenshot en caso de fallo y registra el resultado
+- `AfterAll` → cierra recursos
+
+---
+
+## Ejecución remota — LambdaTest
+
+Para ejecutar en LambdaTest, configurar en el archivo `.env` correspondiente:
+
+```env
+ltDevice=true
+LT_USERNAME=tu_usuario
+LT_ACCESS_KEY=tu_access_key
+```
+
+---
+
+## Análisis de código — SonarQube
+
+```bash
+npm run sonar
+```
+
+Requiere las variables de entorno:
+```env
+SONAR_ORGANIZATION=...
+SONAR_URL=https://sonarcloud.io
+SONAR_TOKEN=...
+```
+
+---
+
+## Flujo de ramas
+
+```
+master
+  └── develop
+        └── feature/devsu
+```
+
+Los cambios se desarrollan en `feature/devsu`, se integran a `develop` y finalmente a `master`.
